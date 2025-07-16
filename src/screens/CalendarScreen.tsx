@@ -192,7 +192,11 @@ export const CalendarScreen: React.FC = () => {
         </View>
       </View>
 
-      <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
+      <ScrollView 
+        className="flex-1" 
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 120 }}
+      >
         {viewMode === 'month' ? (
           <>
             {/* Calendar Grid */}

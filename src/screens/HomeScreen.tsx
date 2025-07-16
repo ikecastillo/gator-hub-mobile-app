@@ -86,7 +86,7 @@ export const HomeScreen: React.FC = () => {
         className="flex-1"
         automaticallyAdjustContentInsets
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 100 }}
+        contentContainerStyle={{ paddingBottom: 120 }}
       >
         {/* Header Section */}
         <View className="bg-gator-green pt-4 pb-8 px-6">

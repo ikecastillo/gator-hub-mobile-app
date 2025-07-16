@@ -17,7 +17,7 @@ export const ResourceTile: React.FC<ResourceTileProps> = ({
 }) => {
   const sizeClasses = {
     small: 'h-20 flex-row items-center px-4 py-3',
-    medium: 'h-32 p-4',
+    medium: 'h-36 p-4',
     large: 'h-40 p-6'
   };
 
@@ -80,11 +80,11 @@ export const ResourceTile: React.FC<ResourceTileProps> = ({
           <Text className={cn(
             'font-semibold text-gray-900 mb-1',
             textSizes[size]
-          )}>
+          )} numberOfLines={2}>
             {resource.title}
           </Text>
           {size !== 'small' && (
-            <Text className="text-xs text-gray-600 leading-relaxed">
+            <Text className="text-xs text-gray-600 leading-relaxed" numberOfLines={3}>
               {resource.description}
             </Text>
           )}

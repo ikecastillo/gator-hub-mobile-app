@@ -1,10 +1,10 @@
 import React, { useState, useRef } from 'react';
 import { View, Text, ScrollView, TextInput, Pressable, KeyboardAvoidingView, Platform } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useAppStore } from '../state/appStore';
 import { ChatBubble } from '../components/ChatBubble';
 import { CTAButton } from '../components/CTAButton';
-import { chatService } from '../api/chat-service';
 import { cn } from '../utils/cn';
 
 const quickSuggestions = [
@@ -17,10 +17,42 @@ const quickSuggestions = [
 ];
 
 export const AskGaitorScreen: React.FC = () => {
+  const insets = useSafeAreaInsets();
   const scrollViewRef = useRef<ScrollView>(null);
   const [inputText, setInputText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const { chatHistory, addChatMessage, clearChatHistory } = useAppStore();
+
+  const getSimulatedResponse = (message: string): string => {
+    const messageLower = message.toLowerCase();
+    
+    if (messageLower.includes('lunch') || messageLower.includes('food') || messageLower.includes('menu')) {
+      return "This week's lunch menu includes pizza Monday, taco Tuesday, and Mediterranean Wednesday! You can find the full menu and nutrition information in the Food Services section. Would you like me to show you how to check your meal account balance too?";
+    }
+    
+    if (messageLower.includes('absence') || messageLower.includes('absent') || messageLower.includes('sick')) {
+      return "To report an absence, you can use the Absence Reporting form in the Resources section. You'll need to provide the student's name, date of absence, and reason. For extended absences, you can also request homework from teachers.";
+    }
+    
+    if (messageLower.includes('canvas') || messageLower.includes('grade') || messageLower.includes('assignment')) {
+      return "Canvas is our learning management system where students can view assignments, submit homework, and check grades. Parents can access Canvas through the parent portal. You'll find the Canvas link in our Resources section!";
+    }
+    
+    if (messageLower.includes('contact') || messageLower.includes('teacher') || messageLower.includes('email')) {
+      return "You can find all teacher contact information in our Teacher Directory. Most teachers respond to emails within 24 hours. For urgent matters, you can always call the main office at (555) 123-4567.";
+    }
+    
+    if (messageLower.includes('hours') || messageLower.includes('time') || messageLower.includes('schedule')) {
+      return "School hours are 8:00 AM to 3:30 PM, Monday through Friday. The main office is open from 7:30 AM to 4:00 PM for any questions or assistance you might need.";
+    }
+    
+    if (messageLower.includes('conference') || messageLower.includes('meeting')) {
+      return "Parent-teacher conferences are scheduled online through our parent portal. Spring conferences are coming up March 15-17! You can book 15-minute slots with each of your child's teachers.";
+    }
+    
+    // Default friendly response
+    return "Great question! I'm here to help you navigate Gateway College Prep. You can find most information in our Resources section, or feel free to contact our friendly office staff at (555) 123-4567. Is there anything specific about school services I can help you with?";
+  };
 
   const handleSendMessage = async (message: string) => {
     if (!message.trim() || isLoading) return;
@@ -35,24 +67,10 @@ export const AskGaitorScreen: React.FC = () => {
     setInputText('');
     setIsLoading(true);
 
-    try {
-      // Create system prompt for Gaitor
-      const systemPrompt = `You are Gaitor, a helpful AI assistant for Gateway College Preparatory School. You help parents and students with school-related questions.
-
-Key information about the school:
-- School hours: 8:00 AM - 3:30 PM
-- Main office: (555) 123-4567
-- Canvas LMS is used for assignments and grades
-- Lunch menu changes weekly
-- Parent-teacher conferences are scheduled online
-- Absences can be reported through the school app or website
-- The school mascot is the Gator
-
-Always be friendly, helpful, and concise. If you don't know specific information, direct them to contact the school office or check the school website. When appropriate, suggest relevant school resources.
-
-Respond in a warm, professional tone that reflects the school's welcoming "Gator Family" culture.`;
-
-      const response = await chatService.getChatResponse(message, systemPrompt);
+    // Simulate loading delay
+    setTimeout(() => {
+      // Get simulated response
+      const response = getSimulatedResponse(message);
       
       // Determine if we should suggest resources based on the query
       const suggestedResources = getSuggestedResources(message);
@@ -70,16 +88,8 @@ Respond in a warm, professional tone that reflects the school's welcoming "Gator
         scrollViewRef.current?.scrollToEnd({ animated: true });
       }, 100);
 
-    } catch (error) {
-      console.error('Error getting AI response:', error);
-      addChatMessage({
-        text: "I'm sorry, I'm having trouble connecting right now. Please try again in a moment, or contact the school office at (555) 123-4567 for immediate assistance.",
-        isUser: false,
-        timestamp: new Date(),
-      });
-    } finally {
       setIsLoading(false);
-    }
+    }, 1000 + Math.random() * 1000); // Random delay between 1-2 seconds
   };
 
   const getSuggestedResources = (query: string): string[] => {
@@ -122,12 +132,9 @@ Respond in a warm, professional tone that reflects the school's welcoming "Gator
   };
 
   return (
-    <KeyboardAvoidingView 
-      className="flex-1 bg-gray-50"
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-    >
+    <View className="flex-1 bg-gray-50">
       {/* Header */}
-      <View className="bg-gator-green px-6 py-4">
+      <View className="bg-gator-green px-6 py-4" style={{ paddingTop: insets.top + 16 }}>
         <View className="flex-row items-center justify-between">
           <View className="flex-row items-center">
             <View className="w-10 h-10 bg-gator-orange rounded-full items-center justify-center mr-3">
@@ -156,6 +163,7 @@ Respond in a warm, professional tone that reflects the school's welcoming "Gator
         className="flex-1 px-2 py-4"
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 20 }}
+        keyboardShouldPersistTaps="handled"
       >
         {chatHistory.length === 0 ? (
           <View className="flex-1 justify-center items-center px-6">
@@ -210,43 +218,53 @@ Respond in a warm, professional tone that reflects the school's welcoming "Gator
       </ScrollView>
 
       {/* Input Area */}
-      <View className="bg-white border-t border-gray-200 px-4 py-3">
-        <View className="flex-row items-end space-x-3">
-          <View className="flex-1 bg-gray-100 rounded-2xl px-4 py-3">
-            <TextInput
-              value={inputText}
-              onChangeText={setInputText}
-              placeholder="Ask Gaitor anything..."
-              placeholderTextColor="#9ca3af"
-              className="text-base text-gray-900 max-h-20"
-              multiline
-              textAlignVertical="center"
-              onSubmitEditing={() => handleSendMessage(inputText)}
-              blurOnSubmit={false}
-            />
+      <KeyboardAvoidingView 
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
+      >
+        <View className="bg-white border-t border-gray-200 px-4 py-4" style={{ paddingBottom: Math.max(insets.bottom, 16) }}>
+          <View className="flex-row items-end space-x-3">
+            <View className="flex-1 bg-gray-100 rounded-2xl px-4 py-3 min-h-[44px] max-h-[100px] justify-center">
+              <TextInput
+                value={inputText}
+                onChangeText={setInputText}
+                placeholder="Ask Gaitor anything..."
+                placeholderTextColor="#9ca3af"
+                className="text-base text-gray-900"
+                multiline={true}
+                textAlignVertical="center"
+                onSubmitEditing={() => {
+                  if (!inputText.includes('\n')) {
+                    handleSendMessage(inputText);
+                  }
+                }}
+                returnKeyType="send"
+                enablesReturnKeyAutomatically={true}
+              />
+            </View>
+            <Pressable
+              onPress={() => handleSendMessage(inputText)}
+              disabled={!inputText.trim() || isLoading}
+              className={cn(
+                'w-12 h-12 rounded-full items-center justify-center shadow-sm',
+                inputText.trim() && !isLoading
+                  ? 'bg-gator-green'
+                  : 'bg-gray-300'
+              )}
+              style={({ pressed }) => ({ 
+                opacity: pressed ? 0.8 : 1,
+                transform: [{ scale: pressed ? 0.95 : 1 }] 
+              })}
+            >
+              <Ionicons
+                name={isLoading ? "hourglass-outline" : "send"}
+                size={20}
+                color="#ffffff"
+              />
+            </Pressable>
           </View>
-          <Pressable
-            onPress={() => handleSendMessage(inputText)}
-            disabled={!inputText.trim() || isLoading}
-            className={cn(
-              'w-12 h-12 rounded-full items-center justify-center',
-              inputText.trim() && !isLoading
-                ? 'bg-gator-green'
-                : 'bg-gray-300'
-            )}
-            style={({ pressed }) => ({ 
-              opacity: pressed ? 0.7 : 1,
-              transform: [{ scale: pressed ? 0.95 : 1 }] 
-            })}
-          >
-            <Ionicons
-              name={isLoading ? "hourglass-outline" : "send"}
-              size={20}
-              color="#ffffff"
-            />
-          </Pressable>
         </View>
-      </View>
-    </KeyboardAvoidingView>
+      </KeyboardAvoidingView>
+    </View>
   );
 };

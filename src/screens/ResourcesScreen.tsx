@@ -221,9 +221,9 @@ export const ResourcesScreen: React.FC = () => {
       <ScrollView 
         className="flex-1 px-6 py-4"
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 100 }}
+        contentContainerStyle={{ paddingBottom: 120 }}
       >
-        <View className="flex-row items-center justify-between mb-4">
+        <View className="flex-row items-center justify-between mb-6">
           <Text className="text-lg font-semibold text-gray-900">
             {selectedCategory === 'all' ? 'All Resources' : 
              resourceCategories.find(c => c.id === selectedCategory)?.name + ' Resources'}
@@ -236,14 +236,15 @@ export const ResourcesScreen: React.FC = () => {
         </View>
 
         {filteredResources.length > 0 ? (
-          <View className="space-y-3">
+          <View className="flex-row flex-wrap justify-between">
             {filteredResources.map((resource) => (
-              <ResourceTile
-                key={resource.id}
-                resource={resource}
-                onPress={() => handleResourcePress(resource)}
-                size="small"
-              />
+              <View key={resource.id} className="w-[48%] mb-4">
+                <ResourceTile
+                  resource={resource}
+                  onPress={() => handleResourcePress(resource)}
+                  size="medium"
+                />
+              </View>
             ))}
           </View>
         ) : (

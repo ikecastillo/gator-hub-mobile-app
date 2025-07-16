@@ -114,7 +114,7 @@ export const NotificationsScreen: React.FC = () => {
       <ScrollView 
         className="flex-1 px-6 py-4"
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 100 }}
+        contentContainerStyle={{ paddingBottom: 120 }}
       >
         {filteredNotifications.length > 0 ? (
           <View className="space-y-3">

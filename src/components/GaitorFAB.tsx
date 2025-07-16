@@ -8,7 +8,7 @@ export const GaitorFAB: React.FC = () => {
   const { toggleGaitor, unreadCount } = useAppStore();
 
   return (
-    <View className="absolute bottom-6 right-6 z-50">
+    <View className="absolute bottom-24 right-6 z-50">
       <Pressable
         onPress={toggleGaitor}
         className="bg-gator-orange w-14 h-14 rounded-full items-center justify-center shadow-lg"
