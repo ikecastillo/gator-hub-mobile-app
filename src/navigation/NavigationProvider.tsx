@@ -46,7 +46,8 @@ export const NavigationProvider: React.FC<NavigationProviderProps> = ({ children
         console.log('Navigation context initialized successfully');
       }, 200); // Increased delay for reliability
 
-      return () => clearTimeout(timer);
+      // Return cleanup function
+      return timer;
     } catch (error) {
       console.error('Navigation initialization error:', error);
       setHasError(true);
@@ -59,6 +60,7 @@ export const NavigationProvider: React.FC<NavigationProviderProps> = ({ children
           initializeNavigation();
         }, 1000);
       }
+      return null;
     }
   }, [initializationAttempts]);
 
@@ -71,8 +73,12 @@ export const NavigationProvider: React.FC<NavigationProviderProps> = ({ children
   }, [initializeNavigation]);
 
   useEffect(() => {
-    const cleanup = initializeNavigation();
-    return cleanup;
+    const timer = initializeNavigation();
+    return () => {
+      if (timer) {
+        clearTimeout(timer);
+      }
+    };
   }, [initializeNavigation]);
 
   const handleNavigationReady = useCallback(() => {
