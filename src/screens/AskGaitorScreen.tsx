@@ -310,11 +310,12 @@ export const AskGaitorScreen: React.FC = () => {
       <ScrollView
         ref={scrollViewRef}
         className="flex-1 px-0"
-        style={{ paddingTop: chatHistory.length === 0 ? insets.top + 4 : 16 }}
+        style={{ paddingTop: chatHistory.length === 0 ? 0 : 16 }}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ 
-          paddingBottom: 80,
-          flexGrow: chatHistory.length === 0 ? 1 : undefined
+          paddingBottom: 100,
+          flexGrow: chatHistory.length === 0 ? 1 : undefined,
+          paddingTop: chatHistory.length === 0 ? insets.top + 16 : 0
         }}
         keyboardShouldPersistTaps="handled"
       >
@@ -377,67 +378,66 @@ export const AskGaitorScreen: React.FC = () => {
       </ScrollView>
 
       {/* Input Area - Fixed positioning */}
-      <View className="absolute bottom-0 left-0 right-0">
-        <KeyboardAvoidingView 
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+      <KeyboardAvoidingView 
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
+        style={{ position: 'absolute', bottom: 0, left: 0, right: 0 }}
+      >
+        <View 
+          className="bg-white border-t border-gray-100 px-4 py-3" 
+          style={{ paddingBottom: Math.max(insets.bottom + 8, 12) }}
         >
-          <View 
-            className="bg-white border-t border-gray-100 px-4 py-3" 
-            style={{ paddingBottom: Math.max(insets.bottom + 8, 12) }}
-          >
-            <View className="flex-row items-end space-x-2">
-              <View className="flex-1">
-                <View className="bg-gray-50 rounded-2xl px-4 py-3 min-h-[56px] max-h-[120px] border border-gray-200">
-                  <TextInput
-                    ref={inputRef}
-                    value={inputText}
-                    onChangeText={setInputText}
-                    placeholder="Message Gaitor..."
-                    placeholderTextColor="#9ca3af"
-                    className="text-base text-gray-900 leading-relaxed"
-                    multiline={true}
-                    textAlignVertical="top"
-                    style={{ minHeight: 48, maxHeight: 112 }}
-                    onFocus={() => {
-                      setTimeout(() => {
-                        scrollViewRef.current?.scrollToEnd({ animated: true });
-                      }, 300);
-                    }}
-                    onSubmitEditing={() => {
-                      if (!inputText.includes('\n')) {
-                        handleSendMessage(inputText);
-                      }
-                    }}
-                    returnKeyType="send"
-                    enablesReturnKeyAutomatically={true}
-                  />
-                </View>
-              </View>
-              <Pressable
-                onPress={() => handleSendMessage(inputText)}
-                disabled={!inputText.trim() || isLoading}
-                className={cn(
-                  'w-11 h-11 rounded-xl items-center justify-center shadow-sm',
-                  inputText.trim() && !isLoading
-                    ? 'bg-gator-green'
-                    : 'bg-gray-200'
-                )}
-                style={({ pressed }) => ({ 
-                  opacity: pressed ? 0.8 : 1,
-                  transform: [{ scale: pressed ? 0.95 : 1 }] 
-                })}
-              >
-                <Ionicons
-                  name={isLoading ? "hourglass-outline" : "send"}
-                  size={18}
-                  color={inputText.trim() && !isLoading ? "#ffffff" : "#9ca3af"}
+          <View className="flex-row items-end space-x-2">
+            <View className="flex-1">
+              <View className="bg-gray-50 rounded-2xl px-4 py-3 min-h-[56px] max-h-[120px] border border-gray-200">
+                <TextInput
+                  ref={inputRef}
+                  value={inputText}
+                  onChangeText={setInputText}
+                  placeholder="Message Gaitor..."
+                  placeholderTextColor="#9ca3af"
+                  className="text-base text-gray-900 leading-relaxed"
+                  multiline={true}
+                  textAlignVertical="top"
+                  style={{ minHeight: 48, maxHeight: 112 }}
+                  onFocus={() => {
+                    setTimeout(() => {
+                      scrollViewRef.current?.scrollToEnd({ animated: true });
+                    }, 300);
+                  }}
+                  onSubmitEditing={() => {
+                    if (!inputText.includes('\n')) {
+                      handleSendMessage(inputText);
+                    }
+                  }}
+                  returnKeyType="send"
+                  enablesReturnKeyAutomatically={true}
                 />
-              </Pressable>
+              </View>
             </View>
+            <Pressable
+              onPress={() => handleSendMessage(inputText)}
+              disabled={!inputText.trim() || isLoading}
+              className={cn(
+                'w-11 h-11 rounded-xl items-center justify-center shadow-sm',
+                inputText.trim() && !isLoading
+                  ? 'bg-gator-green'
+                  : 'bg-gray-200'
+              )}
+              style={({ pressed }) => ({ 
+                opacity: pressed ? 0.8 : 1,
+                transform: [{ scale: pressed ? 0.95 : 1 }] 
+              })}
+            >
+              <Ionicons
+                name={isLoading ? "hourglass-outline" : "send"}
+                size={18}
+                color={inputText.trim() && !isLoading ? "#ffffff" : "#9ca3af"}
+              />
+            </Pressable>
           </View>
-        </KeyboardAvoidingView>
-      </View>
+        </View>
+      </KeyboardAvoidingView>
     </View>
   );
 };
