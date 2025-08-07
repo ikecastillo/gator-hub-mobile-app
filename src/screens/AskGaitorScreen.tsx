@@ -310,7 +310,7 @@ export const AskGaitorScreen: React.FC = () => {
       <ScrollView
         ref={scrollViewRef}
         className="flex-1 px-0"
-        style={{ paddingTop: chatHistory.length === 0 ? insets.top + 8 : 16 }}
+        style={{ paddingTop: chatHistory.length === 0 ? insets.top + 4 : 16 }}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ 
           paddingBottom: 80,
@@ -319,7 +319,7 @@ export const AskGaitorScreen: React.FC = () => {
         keyboardShouldPersistTaps="handled"
       >
         {chatHistory.length === 0 ? (
-          <View className="flex-1 items-center px-6 pt-4 pb-8">
+          <View className="flex-1 items-center px-6 pt-2 pb-8">
             {/* Welcome Card */}
             <View className="bg-white rounded-3xl p-6 items-center shadow-sm border border-gray-100 mb-6 w-full">
               <View className="w-16 h-16 bg-gator-orange rounded-2xl items-center justify-center mb-4 shadow-lg">
@@ -380,15 +380,15 @@ export const AskGaitorScreen: React.FC = () => {
       <View className="absolute bottom-0 left-0 right-0">
         <KeyboardAvoidingView 
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          keyboardVerticalOffset={0}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
         >
           <View 
-            className="bg-white border-t border-gray-100 px-4 py-4" 
-            style={{ paddingBottom: Math.max(insets.bottom + 16, 20) }}
+            className="bg-white border-t border-gray-100 px-4 py-3" 
+            style={{ paddingBottom: Math.max(insets.bottom + 8, 12) }}
           >
-            <View className="flex-row items-end space-x-3">
+            <View className="flex-row items-end space-x-2">
               <View className="flex-1">
-                <View className="bg-gray-50 rounded-2xl px-4 py-4 min-h-[64px] max-h-[120px] border border-gray-200">
+                <View className="bg-gray-50 rounded-2xl px-4 py-3 min-h-[56px] max-h-[120px] border border-gray-200">
                   <TextInput
                     ref={inputRef}
                     value={inputText}
@@ -398,7 +398,12 @@ export const AskGaitorScreen: React.FC = () => {
                     className="text-base text-gray-900 leading-relaxed"
                     multiline={true}
                     textAlignVertical="top"
-                    style={{ minHeight: 56, maxHeight: 112 }}
+                    style={{ minHeight: 48, maxHeight: 112 }}
+                    onFocus={() => {
+                      setTimeout(() => {
+                        scrollViewRef.current?.scrollToEnd({ animated: true });
+                      }, 300);
+                    }}
                     onSubmitEditing={() => {
                       if (!inputText.includes('\n')) {
                         handleSendMessage(inputText);
@@ -413,7 +418,7 @@ export const AskGaitorScreen: React.FC = () => {
                 onPress={() => handleSendMessage(inputText)}
                 disabled={!inputText.trim() || isLoading}
                 className={cn(
-                  'w-12 h-12 rounded-2xl items-center justify-center shadow-sm',
+                  'w-11 h-11 rounded-xl items-center justify-center shadow-sm',
                   inputText.trim() && !isLoading
                     ? 'bg-gator-green'
                     : 'bg-gray-200'
@@ -425,7 +430,7 @@ export const AskGaitorScreen: React.FC = () => {
               >
                 <Ionicons
                   name={isLoading ? "hourglass-outline" : "send"}
-                  size={20}
+                  size={18}
                   color={inputText.trim() && !isLoading ? "#ffffff" : "#9ca3af"}
                 />
               </Pressable>
