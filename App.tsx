@@ -36,7 +36,9 @@ class NavigationErrorBoundary extends React.Component<
   }
 
   static getDerivedStateFromError(error: Error) {
-    console.error('Navigation Error Boundary caught error:', error);
+    // Avoid console.error in getDerivedStateFromError to prevent circular errors
+    // Use console.warn instead which doesn't trigger error boundaries
+    console.warn('[Error Boundary] Navigation error detected:', error.name, '-', error.message);
     
     // Handle various types of navigation errors
     const isNavigationError = error.message.includes('navigation context') ||
@@ -52,16 +54,24 @@ class NavigationErrorBoundary extends React.Component<
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error('Navigation Error Boundary - Error Details:', {
-      error: error.message,
-      stack: error.stack,
-      componentStack: errorInfo.componentStack,
-      timestamp: new Date().toISOString()
-    });
+    // Use console.warn to avoid triggering the error boundary again
+    // Only log in development mode
+    if (__DEV__) {
+      console.warn('[Error Boundary] Navigation Error Details:', {
+        error: error.message,
+        name: error.name,
+        timestamp: new Date().toISOString()
+      });
+      
+      // Log component stack separately to avoid circular reference
+      if (errorInfo.componentStack) {
+        console.warn('[Error Boundary] Component Stack:', errorInfo.componentStack.slice(0, 500));
+      }
 
-    // Log additional context for debugging
-    if (error.message.includes('navigation context')) {
-      console.warn('Navigation context error - This usually indicates timing issues with navigation initialization');
+      // Log additional context for debugging
+      if (error.message.includes('navigation context')) {
+        console.warn('[Error Boundary] This indicates navigation timing issues during initialization');
+      }
     }
   }
 

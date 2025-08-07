@@ -19,7 +19,9 @@ export const useNavigationContext = () => {
   const context = useContext(NavigationContext);
   if (!context) {
     // Return a safe fallback instead of throwing
-    console.warn('useNavigationContext called outside of NavigationProvider, returning fallback');
+    if (__DEV__) {
+      console.warn('[NavigationProvider] useNavigationContext called outside of provider, returning fallback');
+    }
     return { isReady: false, isInitialized: false, hasError: true, retryInitialization: () => {} };
   }
   return context;
@@ -43,22 +45,26 @@ export const NavigationProvider: React.FC<NavigationProviderProps> = ({ children
       // Add a small delay to ensure React Navigation is fully ready
       const timer = setTimeout(() => {
         setIsInitialized(true);
-        console.log('Navigation context initialized successfully');
+        if (__DEV__) {
+          console.log('[NavigationProvider] Navigation context initialized successfully');
+        }
       }, 200); // Increased delay for reliability
 
       // Return cleanup function
       return timer;
     } catch (error) {
-      console.error('Navigation initialization error:', error);
+      if (__DEV__) {
+        console.warn('[NavigationProvider] Navigation initialization error:', error);
+      }
       setHasError(true);
       setInitializationAttempts(prev => prev + 1);
       
       // Auto-retry up to 3 times
       if (initializationAttempts < 3) {
-        setTimeout(() => {
-          console.log(`Retrying navigation initialization (attempt ${initializationAttempts + 1})`);
-          initializeNavigation();
-        }, 1000);
+        if (__DEV__) {
+          console.log(`[NavigationProvider] Retrying navigation initialization (attempt ${initializationAttempts + 1})`);
+        }
+        initializeNavigation();
       }
       return null;
     }
@@ -83,22 +89,28 @@ export const NavigationProvider: React.FC<NavigationProviderProps> = ({ children
 
   const handleNavigationReady = useCallback(() => {
     try {
-      console.log('Navigation container is ready');
+      if (__DEV__) {
+        console.log('[NavigationProvider] Navigation container is ready');
+      }
       setIsReady(true);
       setHasError(false);
     } catch (error) {
-      console.error('Navigation ready handler error:', error);
+      if (__DEV__) {
+        console.warn('[NavigationProvider] Navigation ready handler error:', error);
+      }
       setHasError(true);
     }
   }, []);
 
   const handleStateChange = useCallback((state: any) => {
     try {
-      if (state?.routes) {
-        console.log('Navigation state changed:', state.routes.map((r: any) => r.name));
+      if (__DEV__ && state?.routes) {
+        console.log('[NavigationProvider] Navigation state changed:', state.routes.map((r: any) => r.name));
       }
     } catch (error) {
-      console.warn('Navigation state change handler error:', error);
+      if (__DEV__) {
+        console.warn('[NavigationProvider] Navigation state change handler error:', error);
+      }
     }
   }, []);
 
