@@ -313,7 +313,7 @@ export const AskGaitorScreen: React.FC = () => {
         style={{ paddingTop: chatHistory.length === 0 ? insets.top + 20 : 16 }}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ 
-          paddingBottom: 120,
+          paddingBottom: 80,
           flexGrow: chatHistory.length === 0 ? 1 : undefined
         }}
         keyboardShouldPersistTaps="handled"
