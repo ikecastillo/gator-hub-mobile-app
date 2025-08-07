@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { View, Text, ScrollView, Pressable, TextInput } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
+
 import { ResourceTile } from '../components/ResourceTile';
 import { Badge } from '../components/Badge';
-import { GaitorFAB } from '../components/GaitorFAB';
+
 import { Resource, ResourceCategory } from '../types';
 import { cn } from '../utils/cn';
 
@@ -144,7 +144,6 @@ const allResources: Resource[] = [
 ];
 
 export const ResourcesScreen: React.FC = () => {
-  const navigation = useNavigation();
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -156,7 +155,8 @@ export const ResourcesScreen: React.FC = () => {
   });
 
   const handleResourcePress = (resource: Resource) => {
-    navigation.navigate('ResourceDetail' as never, { resource } as never);
+    // For now, just show an alert - will be properly connected when navigation is working
+    console.log('Resource pressed:', resource.title);
   };
 
   return (
@@ -180,42 +180,55 @@ export const ResourcesScreen: React.FC = () => {
         </View>
       </View>
 
-      {/* Category Filter */}
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        className="bg-white border-b border-gray-200"
-        contentContainerStyle={{ paddingHorizontal: 24, paddingVertical: 16 }}
-      >
-        {resourceCategories.map((category) => (
-          <Pressable
-            key={category.id}
-            onPress={() => setSelectedCategory(category.id)}
-            className={cn(
-              'flex-row items-center px-4 py-2 rounded-full mr-3',
-              selectedCategory === category.id
-                ? 'bg-gator-green'
-                : 'bg-gray-100'
-            )}
-            style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
-          >
-            <Ionicons
-              name={category.icon as any}
-              size={16}
-              color={selectedCategory === category.id ? '#ffffff' : category.color}
-              style={{ marginRight: 6 }}
-            />
-            <Text className={cn(
-              'font-medium',
-              selectedCategory === category.id
-                ? 'text-white'
-                : 'text-gray-700'
-            )}>
-              {category.name}
-            </Text>
-          </Pressable>
-        ))}
-      </ScrollView>
+      {/* Category Filter - Redesigned */}
+      <View className="bg-white px-6 py-4 border-b border-gray-100">
+        <Text className="text-sm font-medium text-gray-700 mb-3">Categories</Text>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={{ paddingRight: 24 }}
+        >
+          <View className="flex-row space-x-2">
+            {resourceCategories.map((category) => (
+              <Pressable
+                key={category.id}
+                onPress={() => setSelectedCategory(category.id)}
+                className={cn(
+                  'flex-row items-center px-4 py-2.5 rounded-xl border',
+                  selectedCategory === category.id
+                    ? 'bg-gator-green border-gator-green shadow-sm'
+                    : 'bg-white border-gray-200'
+                )}
+                style={({ pressed }) => ({ 
+                  opacity: pressed ? 0.8 : 1,
+                  transform: [{ scale: pressed ? 0.98 : 1 }]
+                })}
+              >
+                <View className={cn(
+                  'w-8 h-8 rounded-lg items-center justify-center mr-2',
+                  selectedCategory === category.id
+                    ? 'bg-white/20'
+                    : 'bg-gray-50'
+                )}>
+                  <Ionicons
+                    name={category.icon as any}
+                    size={16}
+                    color={selectedCategory === category.id ? '#ffffff' : category.color}
+                  />
+                </View>
+                <Text className={cn(
+                  'font-medium text-sm',
+                  selectedCategory === category.id
+                    ? 'text-white'
+                    : 'text-gray-700'
+                )}>
+                  {category.name}
+                </Text>
+              </Pressable>
+            ))}
+          </View>
+        </ScrollView>
+      </View>
 
       {/* Resources Grid */}
       <ScrollView 
@@ -259,8 +272,6 @@ export const ResourcesScreen: React.FC = () => {
           </View>
         )}
       </ScrollView>
-
-      <GaitorFAB />
     </View>
   );
 };

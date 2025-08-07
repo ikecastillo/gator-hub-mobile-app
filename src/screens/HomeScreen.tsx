@@ -2,12 +2,12 @@ import React from 'react';
 import { View, Text, ScrollView, Pressable } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
+
 import { useAppStore } from '../state/appStore';
 import { ResourceTile } from '../components/ResourceTile';
 import { CTAButton } from '../components/CTAButton';
 import { Badge } from '../components/Badge';
-import { GaitorFAB } from '../components/GaitorFAB';
+
 import { Resource } from '../types';
 
 const quickAccessResources: Resource[] = [
@@ -65,7 +65,6 @@ const newsItems = [
 
 export const HomeScreen: React.FC = () => {
   const insets = useSafeAreaInsets();
-  const navigation = useNavigation();
   const { selectedStudent, students, notifications } = useAppStore();
 
   const currentStudent = selectedStudent || students[0];
@@ -73,11 +72,11 @@ export const HomeScreen: React.FC = () => {
   const greeting = currentHour < 12 ? 'Good Morning' : currentHour < 17 ? 'Good Afternoon' : 'Good Evening';
 
   const handleResourcePress = (resource: Resource) => {
-    navigation.navigate('ResourceDetail' as never, { resource } as never);
+    console.log('Resource pressed:', resource.title);
   };
 
   const handleProfilePress = () => {
-    navigation.navigate('Profile' as never);
+    console.log('Profile pressed');
   };
 
   return (
@@ -130,7 +129,7 @@ export const HomeScreen: React.FC = () => {
                 icon="calendar-outline"
                 variant="outline"
                 size="small"
-                onPress={() => navigation.navigate('Calendar' as never)}
+                onPress={() => console.log('Calendar pressed')}
               />
             </View>
           </View>
@@ -196,7 +195,7 @@ export const HomeScreen: React.FC = () => {
             <Text className="text-lg font-semibold text-gray-900">
               Recent Updates
             </Text>
-            <Pressable onPress={() => navigation.navigate('Notifications' as never)}>
+            <Pressable onPress={() => console.log('View all notifications')}>
               <Text className="text-gator-green font-medium">View All</Text>
             </Pressable>
           </View>
@@ -228,8 +227,6 @@ export const HomeScreen: React.FC = () => {
           </View>
         </View>
       </ScrollView>
-
-      <GaitorFAB />
     </View>
   );
 };

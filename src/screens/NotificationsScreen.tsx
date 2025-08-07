@@ -1,16 +1,15 @@
 import React, { useState } from 'react';
 import { View, Text, ScrollView, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
+
 import { format } from 'date-fns';
 import { useAppStore, Notification } from '../state/appStore';
 import { Badge } from '../components/Badge';
 import { CTAButton } from '../components/CTAButton';
-import { GaitorFAB } from '../components/GaitorFAB';
+
 import { cn } from '../utils/cn';
 
 export const NotificationsScreen: React.FC = () => {
-  const navigation = useNavigation();
   const { notifications, markNotificationRead, markAllNotificationsRead, unreadCount } = useAppStore();
   const [selectedFilter, setSelectedFilter] = useState<'all' | 'unread'>('all');
 
@@ -51,7 +50,7 @@ export const NotificationsScreen: React.FC = () => {
     if (!notification.read) {
       markNotificationRead(notification.id);
     }
-    navigation.navigate('NotificationDetail' as never, { notification } as never);
+    console.log('Notification pressed:', notification.title);
   };
 
   return (
@@ -206,8 +205,6 @@ export const NotificationsScreen: React.FC = () => {
           </View>
         )}
       </ScrollView>
-
-      <GaitorFAB />
     </View>
   );
 };

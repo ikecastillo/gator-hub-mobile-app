@@ -5,7 +5,7 @@ import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isToday
 import { CalendarEvent } from '../types';
 import { Badge } from '../components/Badge';
 import { CTAButton } from '../components/CTAButton';
-import { GaitorFAB } from '../components/GaitorFAB';
+
 import { cn } from '../utils/cn';
 
 const mockEvents: CalendarEvent[] = [
@@ -253,8 +253,6 @@ export const CalendarScreen: React.FC = () => {
           />
         </View>
       </ScrollView>
-
-      <GaitorFAB />
     </View>
   );
 };

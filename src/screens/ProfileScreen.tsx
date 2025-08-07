@@ -1,14 +1,13 @@
 import React from 'react';
 import { View, Text, ScrollView, Pressable, Switch } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
+
 import { useAppStore } from '../state/appStore';
 import { CTAButton } from '../components/CTAButton';
 import { Badge } from '../components/Badge';
 import { cn } from '../utils/cn';
 
 export const ProfileScreen: React.FC = () => {
-  const navigation = useNavigation();
   const {
     selectedStudent,
     students,
