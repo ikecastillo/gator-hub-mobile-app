@@ -1,7 +1,7 @@
 import { StatusBar } from "expo-status-bar";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import { NavigationContainer } from "@react-navigation/native";
 import { AppNavigator } from "./src/navigation/AppNavigator";
+import { NavigationProvider } from "./src/navigation/NavigationProvider";
 import React from "react";
 
 /*
@@ -25,37 +25,63 @@ const openai_api_key = Constants.expoConfig.extra.apikey;
 
 */
 
-// Error boundary for navigation context issues
+// Enhanced error boundary for navigation and app-wide issues
 class NavigationErrorBoundary extends React.Component<
   { children: React.ReactNode },
-  { hasError: boolean }
+  { hasError: boolean; errorMessage?: string; retryCount: number }
 > {
   constructor(props: { children: React.ReactNode }) {
     super(props);
-    this.state = { hasError: false };
+    this.state = { hasError: false, retryCount: 0 };
   }
 
   static getDerivedStateFromError(error: Error) {
-    // If there's a navigation context error, we'll handle it gracefully
-    if (error.message.includes('navigation context') || error.message.includes('NavigationContainer')) {
-      return { hasError: true };
+    console.error('Navigation Error Boundary caught error:', error);
+    
+    // Handle various types of navigation errors
+    const isNavigationError = error.message.includes('navigation context') ||
+                              error.message.includes('NavigationContainer') ||
+                              error.message.includes('useNavigationState') ||
+                              error.message.includes('Screen');
+    
+    if (isNavigationError) {
+      return { hasError: true, errorMessage: error.message };
     }
+    
     return { hasError: false };
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.warn('Navigation context error caught:', error);
+    console.error('Navigation Error Boundary - Error Details:', {
+      error: error.message,
+      stack: error.stack,
+      componentStack: errorInfo.componentStack,
+      timestamp: new Date().toISOString()
+    });
+
+    // Log additional context for debugging
+    if (error.message.includes('navigation context')) {
+      console.warn('Navigation context error - This usually indicates timing issues with navigation initialization');
+    }
+  }
+
+  handleRetry = () => {
+    this.setState(prevState => ({
+      hasError: false,
+      errorMessage: undefined,
+      retryCount: prevState.retryCount + 1
+    }));
   }
 
   render() {
     if (this.state.hasError) {
-      // Return a simple fallback UI
+      // Enhanced fallback UI with retry capability
       return (
         <SafeAreaProvider>
-          <NavigationContainer>
+          <NavigationProvider>
             <AppNavigator />
             <StatusBar style="light" />
-          </NavigationContainer>
+          </NavigationProvider>
         </SafeAreaProvider>
       );
     }
@@ -68,17 +94,10 @@ export default function App() {
   return (
     <NavigationErrorBoundary>
       <SafeAreaProvider>
-        <NavigationContainer
-          onReady={() => {
-            console.log('Navigation container is ready');
-          }}
-          onStateChange={(state) => {
-            console.log('Navigation state changed:', state?.routes?.map(r => r.name));
-          }}
-        >
+        <NavigationProvider>
           <AppNavigator />
           <StatusBar style="light" />
-        </NavigationContainer>
+        </NavigationProvider>
       </SafeAreaProvider>
     </NavigationErrorBoundary>
   );
