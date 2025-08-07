@@ -310,7 +310,7 @@ export const AskGaitorScreen: React.FC = () => {
       <ScrollView
         ref={scrollViewRef}
         className="flex-1 px-0"
-        style={{ paddingTop: chatHistory.length === 0 ? insets.top + 20 : 16 }}
+        style={{ paddingTop: chatHistory.length === 0 ? insets.top + 8 : 16 }}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ 
           paddingBottom: 80,
@@ -319,21 +319,21 @@ export const AskGaitorScreen: React.FC = () => {
         keyboardShouldPersistTaps="handled"
       >
         {chatHistory.length === 0 ? (
-          <View className="flex-1 items-center px-6 py-8 justify-center">
+          <View className="flex-1 items-center px-6 pt-4 pb-8">
             {/* Welcome Card */}
-            <View className="bg-white rounded-3xl p-8 items-center shadow-sm border border-gray-100 mb-8 w-full">
-              <View className="w-20 h-20 bg-gator-orange rounded-3xl items-center justify-center mb-6 shadow-lg">
-                <Text className="text-white font-bold text-3xl">🐊</Text>
+            <View className="bg-white rounded-3xl p-6 items-center shadow-sm border border-gray-100 mb-6 w-full">
+              <View className="w-16 h-16 bg-gator-orange rounded-2xl items-center justify-center mb-4 shadow-lg">
+                <Text className="text-white font-bold text-2xl">🐊</Text>
               </View>
-              <Text className="text-2xl font-bold text-gray-900 mb-3 text-center">
+              <Text className="text-xl font-bold text-gray-900 mb-2 text-center">
                 What can I help you with today? 💚
               </Text>
-              <Text className="text-gray-600 text-center leading-relaxed mb-6 text-base">
+              <Text className="text-gray-600 text-center leading-relaxed mb-4 text-sm">
                 I'm your personal guide to Gateway College Prep! Ask me anything about school services, 
                 schedules, resources, or how to get things done.
               </Text>
-              <View className="bg-gator-green/10 px-4 py-2 rounded-full">
-                <Text className="text-gator-green font-semibold text-sm">
+              <View className="bg-gator-green/10 px-3 py-1.5 rounded-full">
+                <Text className="text-gator-green font-semibold text-xs">
                   ✨ Try one of these popular questions
                 </Text>
               </View>
@@ -388,7 +388,7 @@ export const AskGaitorScreen: React.FC = () => {
           >
             <View className="flex-row items-end space-x-3">
               <View className="flex-1">
-                <View className="bg-gray-50 rounded-2xl px-4 py-3 min-h-[48px] max-h-[100px] border border-gray-200">
+                <View className="bg-gray-50 rounded-2xl px-4 py-4 min-h-[64px] max-h-[120px] border border-gray-200">
                   <TextInput
                     ref={inputRef}
                     value={inputText}
@@ -398,6 +398,7 @@ export const AskGaitorScreen: React.FC = () => {
                     className="text-base text-gray-900 leading-relaxed"
                     multiline={true}
                     textAlignVertical="top"
+                    style={{ minHeight: 56, maxHeight: 112 }}
                     onSubmitEditing={() => {
                       if (!inputText.includes('\n')) {
                         handleSendMessage(inputText);
