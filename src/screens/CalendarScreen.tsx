@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, ScrollView, Pressable, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isToday } from 'date-fns';
@@ -6,6 +6,7 @@ import { CalendarEvent } from '../types';
 import { Badge } from '../components/Badge';
 import { CTAButton } from '../components/CTAButton';
 import { cn } from '../utils/cn';
+import { useNavigationContext } from '../navigation/NavigationProvider';
 
 // Generate sample events for demo
 const generateSampleEvents = (): CalendarEvent[] => {
@@ -171,16 +172,22 @@ const mockEvents = generateSampleEvents();
 export const CalendarScreen: React.FC = () => {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [viewMode, setViewMode] = useState<'month' | 'agenda'>('month');
-  const [isNavigationReady, setIsNavigationReady] = useState(false);
+  const [screenError, setScreenError] = useState<string | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
+  
+  // Use enhanced navigation context
+  const { isReady, isInitialized, hasError, retryInitialization } = useNavigationContext();
 
-  // Ensure component is mounted and navigation context is available
+  // Screen-level error recovery
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsNavigationReady(true);
-    }, 100);
-
-    return () => clearTimeout(timer);
-  }, []);
+    if (hasError && retryCount < 3) {
+      console.log(`Calendar screen attempting navigation recovery (attempt ${retryCount + 1})`);
+      setTimeout(() => {
+        retryInitialization();
+        setRetryCount(prev => prev + 1);
+      }, 1000);
+    }
+  }, [hasError, retryCount, retryInitialization]);
 
   const currentMonth = startOfMonth(selectedDate);
   const currentMonthEnd = endOfMonth(selectedDate);
@@ -201,51 +208,88 @@ export const CalendarScreen: React.FC = () => {
     .sort((a, b) => a.date.getTime() - b.date.getTime())
     .slice(0, 10);
 
-  const handleDateSelect = (date: Date) => {
+  // Safe state management handlers with enhanced error handling
+  const handleDateSelect = useCallback((date: Date) => {
     try {
-      if (isNavigationReady) {
-        setSelectedDate(date);
+      // Ensure navigation is fully ready and initialized
+      if (!isReady || !isInitialized || hasError) {
+        console.warn('Navigation not ready for date selection, state:', { isReady, isInitialized, hasError });
+        return;
       }
-    } catch (error) {
-      console.warn('Navigation context error in date selection:', error);
-    }
-  };
 
-  const handleViewModeChange = (mode: 'month' | 'agenda') => {
+      setSelectedDate(date);
+      setScreenError(null); // Clear any previous errors
+      console.log('Date selected successfully:', format(date, 'yyyy-MM-dd'));
+    } catch (error) {
+      console.error('Error in date selection:', error);
+      setScreenError(`Date selection failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }, [isReady, isInitialized, hasError]);
+
+  const handleViewModeChange = useCallback((mode: 'month' | 'agenda') => {
     try {
-      if (isNavigationReady) {
-        setViewMode(mode);
+      // Ensure navigation is fully ready before state changes
+      if (!isReady || !isInitialized || hasError) {
+        console.warn('Navigation not ready for view mode change, state:', { isReady, isInitialized, hasError });
+        return;
       }
-    } catch (error) {
-      console.warn('Navigation context error in view mode change:', error);
-    }
-  };
 
-  const handleMonthChange = (direction: 'prev' | 'next') => {
-    try {
-      if (isNavigationReady) {
-        const newDate = new Date(selectedDate);
-        if (direction === 'prev') {
-          newDate.setMonth(newDate.getMonth() - 1);
-        } else {
-          newDate.setMonth(newDate.getMonth() + 1);
+      setViewMode(mode);
+      setScreenError(null); // Clear any previous errors
+      console.log('View mode changed successfully:', mode);
+    } catch (error) {
+      console.error('Error in view mode change:', error);
+      setScreenError(`View mode change failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      
+      // Auto-recovery for this critical function
+      setTimeout(() => {
+        try {
+          setViewMode(prevMode => prevMode); // Reset to current mode
+        } catch (retryError) {
+          console.error('View mode recovery failed:', retryError);
         }
-        setSelectedDate(newDate);
-      }
-    } catch (error) {
-      console.warn('Navigation context error in month change:', error);
+      }, 500);
     }
-  };
+  }, [isReady, isInitialized, hasError]);
 
-  const handleTodayPress = () => {
+  const handleMonthChange = useCallback((direction: 'prev' | 'next') => {
     try {
-      if (isNavigationReady) {
-        setSelectedDate(new Date());
+      if (!isReady || !isInitialized || hasError) {
+        console.warn('Navigation not ready for month change, state:', { isReady, isInitialized, hasError });
+        return;
       }
+
+      const newDate = new Date(selectedDate);
+      if (direction === 'prev') {
+        newDate.setMonth(newDate.getMonth() - 1);
+      } else {
+        newDate.setMonth(newDate.getMonth() + 1);
+      }
+      setSelectedDate(newDate);
+      setScreenError(null);
+      console.log('Month changed successfully:', format(newDate, 'yyyy-MM'));
     } catch (error) {
-      console.warn('Navigation context error in today press:', error);
+      console.error('Error in month change:', error);
+      setScreenError(`Month change failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
-  };
+  }, [selectedDate, isReady, isInitialized, hasError]);
+
+  const handleTodayPress = useCallback(() => {
+    try {
+      if (!isReady || !isInitialized || hasError) {
+        console.warn('Navigation not ready for today press, state:', { isReady, isInitialized, hasError });
+        return;
+      }
+
+      const today = new Date();
+      setSelectedDate(today);
+      setScreenError(null);
+      console.log('Today pressed successfully:', format(today, 'yyyy-MM-dd'));
+    } catch (error) {
+      console.error('Error in today press:', error);
+      setScreenError(`Today press failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }, [isReady, isInitialized, hasError]);
 
   const renderCalendarDay = (date: Date) => {
     const events = getEventsForDate(date);
@@ -398,18 +442,61 @@ export const CalendarScreen: React.FC = () => {
     );
   };
 
-  // Show loading state while navigation context is initializing
-  if (!isNavigationReady) {
+  // Enhanced loading and error states
+  if (!isReady || !isInitialized) {
     return (
       <View className="flex-1 bg-gray-50 items-center justify-center">
         <View className="items-center">
           <Ionicons name="calendar-outline" size={48} color="#10502f" />
           <Text className="text-gray-600 text-lg font-medium mt-4">
-            Loading Calendar...
+            {!isInitialized ? 'Loading Calendar...' : 'Preparing Navigation...'}
           </Text>
           <Text className="text-gray-400 text-sm mt-2 text-center">
-            Initializing navigation context
+            {!isInitialized 
+              ? 'Initializing calendar components' 
+              : 'Setting up navigation context'
+            }
           </Text>
+          {hasError && retryCount > 0 && (
+            <View className="mt-4 px-4 py-2 bg-gator-orange/10 rounded-lg">
+              <Text className="text-gator-orange text-sm text-center">
+                Retrying connection... (Attempt {retryCount}/3)
+              </Text>
+            </View>
+          )}
+        </View>
+      </View>
+    );
+  }
+
+  // Error state with retry option
+  if (hasError && retryCount >= 3) {
+    return (
+      <View className="flex-1 bg-gray-50 items-center justify-center px-6">
+        <View className="items-center">
+          <Ionicons name="warning-outline" size={48} color="#ee592b" />
+          <Text className="text-gray-900 text-lg font-medium mt-4 text-center">
+            Calendar Temporarily Unavailable
+          </Text>
+          <Text className="text-gray-600 text-sm mt-2 text-center">
+            We're having trouble loading the calendar. Please try again.
+          </Text>
+          {screenError && (
+            <Text className="text-gray-400 text-xs mt-2 text-center">
+              Error: {screenError}
+            </Text>
+          )}
+          <Pressable
+            onPress={() => {
+              setRetryCount(0);
+              setScreenError(null);
+              retryInitialization();
+            }}
+            className="mt-6 px-6 py-3 bg-gator-green rounded-lg"
+            style={({ pressed }) => ({ opacity: pressed ? 0.8 : 1 })}
+          >
+            <Text className="text-white font-medium">Try Again</Text>
+          </Pressable>
         </View>
       </View>
     );
