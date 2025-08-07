@@ -1,11 +1,10 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, Pressable } from 'react-native';
+import { View, Text, ScrollView, Pressable, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isToday } from 'date-fns';
 import { CalendarEvent } from '../types';
 import { Badge } from '../components/Badge';
 import { CTAButton } from '../components/CTAButton';
-
 import { cn } from '../utils/cn';
 
 // Generate sample events for demo
@@ -217,21 +216,24 @@ export const CalendarScreen: React.FC = () => {
           {format(date, 'd')}
         </Text>
         {events.length > 0 && (
-          <View className="absolute bottom-1 flex-row space-x-0.5">
+          <View style={{ position: 'absolute', bottom: 2, flexDirection: 'row', gap: 1 }}>
             {events.slice(0, 3).map((_, index) => (
               <View 
                 key={index}
-                className={cn(
-                  'w-1 h-1 rounded-full',
-                  isSelected ? 'bg-white' : 'bg-gator-green'
-                )}
+                style={{
+                  width: 3,
+                  height: 3,
+                  borderRadius: 1.5,
+                  backgroundColor: isSelected ? '#ffffff' : '#10502f'
+                }}
               />
             ))}
             {events.length > 3 && (
-              <Text className={cn(
-                'text-xs ml-1',
-                isSelected ? 'text-white' : 'text-gator-green'
-              )}>
+              <Text style={{
+                fontSize: 8,
+                marginLeft: 2,
+                color: isSelected ? '#ffffff' : '#10502f'
+              }}>
                 +
               </Text>
             )}
@@ -262,6 +264,9 @@ export const CalendarScreen: React.FC = () => {
     return (
       <Pressable
         key={event.id}
+        onPress={() => {
+          Alert.alert(event.title, event.description || 'No additional details available.');
+        }}
         className={cn(
           'bg-white rounded-xl p-4 mb-3 shadow-sm border border-gray-100',
           isPast && 'opacity-75'
@@ -306,7 +311,7 @@ export const CalendarScreen: React.FC = () => {
           />
         </View>
         
-        <View className="space-y-1">
+        <View style={{ gap: 4 }}>
           <View className="flex-row items-center">
             <Ionicons name="calendar-outline" size={14} color="#6b7280" />
             <Text className="text-sm text-gray-600 ml-2">
@@ -452,7 +457,7 @@ export const CalendarScreen: React.FC = () => {
                 )}
               </View>
               {getEventsForDate(selectedDate).length > 0 ? (
-                <View className="space-y-3">
+                <View style={{ gap: 8 }}>
                   {getEventsForDate(selectedDate).map(renderEventItem)}
                 </View>
               ) : (
@@ -478,7 +483,7 @@ export const CalendarScreen: React.FC = () => {
               Upcoming Events
             </Text>
             {upcomingEvents.length > 0 ? (
-              <View>
+              <View style={{ gap: 8 }}>
                 {upcomingEvents.map(renderEventItem)}
               </View>
             ) : (
@@ -502,7 +507,11 @@ export const CalendarScreen: React.FC = () => {
             variant="outline"
             fullWidth
             onPress={() => {
-              // Handle calendar subscription
+              Alert.alert(
+                'Calendar Subscription',
+                'Calendar subscription feature will be available soon. You\'ll be able to sync school events with your personal calendar app.',
+                [{ text: 'OK' }]
+              );
             }}
           />
         </View>
