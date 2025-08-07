@@ -312,11 +312,14 @@ export const AskGaitorScreen: React.FC = () => {
         className="flex-1 px-0"
         style={{ paddingTop: chatHistory.length === 0 ? insets.top + 20 : 16 }}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 160 }}
+        contentContainerStyle={{ 
+          paddingBottom: 120,
+          flexGrow: chatHistory.length === 0 ? 1 : undefined
+        }}
         keyboardShouldPersistTaps="handled"
       >
         {chatHistory.length === 0 ? (
-          <View className="flex-1 items-center px-6 py-8" style={{ minHeight: 600 }}>
+          <View className="flex-1 items-center px-6 py-8 justify-center">
             {/* Welcome Card */}
             <View className="bg-white rounded-3xl p-8 items-center shadow-sm border border-gray-100 mb-8 w-full">
               <View className="w-20 h-20 bg-gator-orange rounded-3xl items-center justify-center mb-6 shadow-lg">
@@ -381,7 +384,7 @@ export const AskGaitorScreen: React.FC = () => {
         >
           <View 
             className="bg-white border-t border-gray-100 px-4 py-4" 
-            style={{ paddingBottom: Math.max(insets.bottom + 84, 100) }}
+            style={{ paddingBottom: Math.max(insets.bottom + 16, 20) }}
           >
             <View className="flex-row items-end space-x-3">
               <View className="flex-1">
