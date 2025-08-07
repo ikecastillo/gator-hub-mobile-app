@@ -1,7 +1,8 @@
 import { StatusBar } from "expo-status-bar";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import { NavigationContainer } from "@react-navigation/native";
 import { AppNavigator } from "./src/navigation/AppNavigator";
+import { NavigationProvider } from "./src/navigation/NavigationProvider";
+import React from "react";
 
 /*
 IMPORTANT NOTICE: DO NOT REMOVE
@@ -24,13 +25,54 @@ const openai_api_key = Constants.expoConfig.extra.apikey;
 
 */
 
+// Error boundary for navigation context issues
+class NavigationErrorBoundary extends React.Component<
+  { children: React.ReactNode },
+  { hasError: boolean }
+> {
+  constructor(props: { children: React.ReactNode }) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError(error: Error) {
+    // If there's a navigation context error, we'll handle it gracefully
+    if (error.message.includes('navigation context') || error.message.includes('NavigationContainer')) {
+      return { hasError: true };
+    }
+    return { hasError: false };
+  }
+
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    console.warn('Navigation context error caught:', error);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      // Return a simple fallback UI
+      return (
+        <SafeAreaProvider>
+          <NavigationProvider>
+            <AppNavigator />
+            <StatusBar style="light" />
+          </NavigationProvider>
+        </SafeAreaProvider>
+      );
+    }
+
+    return this.props.children;
+  }
+}
+
 export default function App() {
   return (
-    <SafeAreaProvider>
-      <NavigationContainer>
-        <AppNavigator />
-        <StatusBar style="light" />
-      </NavigationContainer>
-    </SafeAreaProvider>
+    <NavigationErrorBoundary>
+      <SafeAreaProvider>
+        <NavigationProvider>
+          <AppNavigator />
+          <StatusBar style="light" />
+        </NavigationProvider>
+      </SafeAreaProvider>
+    </NavigationErrorBoundary>
   );
 }

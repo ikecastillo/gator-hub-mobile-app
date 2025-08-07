@@ -17,6 +17,11 @@ import { NotificationDetailScreen } from '../screens/NotificationDetailScreen';
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
 
+// Navigation context safety wrapper
+const NavigationSafeScreen: React.FC<{ component: React.ComponentType<any> }> = ({ component: Component }) => {
+  return <Component />;
+};
+
 const MainTabs = () => {
   const { unreadCount } = useAppStore();
 

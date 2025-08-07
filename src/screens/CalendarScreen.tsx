@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, Pressable, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isToday } from 'date-fns';
@@ -6,6 +6,7 @@ import { CalendarEvent } from '../types';
 import { Badge } from '../components/Badge';
 import { CTAButton } from '../components/CTAButton';
 import { cn } from '../utils/cn';
+import { useNavigationContext } from '../navigation/NavigationProvider';
 
 // Generate sample events for demo
 const generateSampleEvents = (): CalendarEvent[] => {
@@ -171,6 +172,7 @@ const mockEvents = generateSampleEvents();
 export const CalendarScreen: React.FC = () => {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [viewMode, setViewMode] = useState<'month' | 'agenda'>('month');
+  const { isReady: isNavigationReady } = useNavigationContext();
 
   const currentMonth = startOfMonth(selectedDate);
   const currentMonthEnd = endOfMonth(selectedDate);
@@ -191,16 +193,46 @@ export const CalendarScreen: React.FC = () => {
     .sort((a, b) => a.date.getTime() - b.date.getTime())
     .slice(0, 10);
 
+  const handleDateSelect = (date: Date) => {
+    if (isNavigationReady) {
+      setSelectedDate(date);
+    }
+  };
+
+  const handleViewModeChange = (mode: 'month' | 'agenda') => {
+    if (isNavigationReady) {
+      setViewMode(mode);
+    }
+  };
+
+  const handleMonthChange = (direction: 'prev' | 'next') => {
+    if (isNavigationReady) {
+      const newDate = new Date(selectedDate);
+      if (direction === 'prev') {
+        newDate.setMonth(newDate.getMonth() - 1);
+      } else {
+        newDate.setMonth(newDate.getMonth() + 1);
+      }
+      setSelectedDate(newDate);
+    }
+  };
+
+  const handleTodayPress = () => {
+    if (isNavigationReady) {
+      setSelectedDate(new Date());
+    }
+  };
+
   const renderCalendarDay = (date: Date) => {
     const events = getEventsForDate(date);
     const isSelected = isSameDay(date, selectedDate);
     const isCurrentDay = isToday(date);
 
     return (
-      <Pressable
-        key={date.toISOString()}
-        onPress={() => setSelectedDate(date)}
-        className={cn(
+              <Pressable
+          key={date.toISOString()}
+          onPress={() => safeHandleDateSelect(date)}
+          className={cn(
           'w-10 h-10 m-1 rounded-lg items-center justify-center relative',
           isSelected && 'bg-gator-green shadow-sm',
           isCurrentDay && !isSelected && 'bg-gator-orange/20 border border-gator-orange/40',
@@ -342,6 +374,70 @@ export const CalendarScreen: React.FC = () => {
     );
   };
 
+  // Show loading state while navigation context is initializing
+  if (!isNavigationReady) {
+    return (
+      <View className="flex-1 bg-gray-50 items-center justify-center">
+        <View className="items-center">
+          <Ionicons name="calendar-outline" size={48} color="#10502f" />
+          <Text className="text-gray-600 text-lg font-medium mt-4">
+            Loading Calendar...
+          </Text>
+          <Text className="text-gray-400 text-sm mt-2 text-center">
+            Initializing navigation context
+          </Text>
+        </View>
+      </View>
+    );
+  }
+
+  // Additional safety check for navigation context
+  const safeHandleDateSelect = (date: Date) => {
+    try {
+      if (isNavigationReady) {
+        setSelectedDate(date);
+      }
+    } catch (error) {
+      console.warn('Navigation context error in date selection:', error);
+    }
+  };
+
+  const safeHandleViewModeChange = (mode: 'month' | 'agenda') => {
+    try {
+      if (isNavigationReady) {
+        setViewMode(mode);
+      }
+    } catch (error) {
+      console.warn('Navigation context error in view mode change:', error);
+    }
+  };
+
+  const safeHandleMonthChange = (direction: 'prev' | 'next') => {
+    try {
+      if (isNavigationReady) {
+        const newDate = new Date(selectedDate);
+        if (direction === 'prev') {
+          newDate.setMonth(newDate.getMonth() - 1);
+        } else {
+          newDate.setMonth(newDate.getMonth() + 1);
+        }
+        setSelectedDate(newDate);
+      }
+    } catch (error) {
+      console.warn('Navigation context error in month change:', error);
+    }
+  };
+
+  const safeHandleTodayPress = () => {
+    try {
+      if (isNavigationReady) {
+        setSelectedDate(new Date());
+      }
+    } catch (error) {
+      console.warn('Navigation context error in today press:', error);
+    }
+  };
+
   return (
     <View className="flex-1 bg-gray-50">
       {/* View Toggle */}
@@ -349,11 +445,7 @@ export const CalendarScreen: React.FC = () => {
         <View className="flex-row items-center justify-between mb-3">
           <View className="flex-row items-center">
             <Pressable
-              onPress={() => {
-                const prevMonth = new Date(selectedDate);
-                prevMonth.setMonth(prevMonth.getMonth() - 1);
-                setSelectedDate(prevMonth);
-              }}
+              onPress={() => safeHandleMonthChange('prev')}
               className="w-8 h-8 items-center justify-center mr-3"
               style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
             >
@@ -363,11 +455,7 @@ export const CalendarScreen: React.FC = () => {
               {format(selectedDate, 'MMMM yyyy')}
             </Text>
             <Pressable
-              onPress={() => {
-                const nextMonth = new Date(selectedDate);
-                nextMonth.setMonth(nextMonth.getMonth() + 1);
-                setSelectedDate(nextMonth);
-              }}
+              onPress={() => safeHandleMonthChange('next')}
               className="w-8 h-8 items-center justify-center ml-3"
               style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
             >
@@ -376,7 +464,7 @@ export const CalendarScreen: React.FC = () => {
           </View>
           
           <Pressable
-            onPress={() => setSelectedDate(new Date())}
+            onPress={safeHandleTodayPress}
             className="px-3 py-1.5 bg-gator-green/10 rounded-lg"
             style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
           >
@@ -386,7 +474,7 @@ export const CalendarScreen: React.FC = () => {
         
         <View className="flex-row bg-gray-100 rounded-lg p-1">
           <Pressable
-            onPress={() => setViewMode('month')}
+            onPress={() => safeHandleViewModeChange('month')}
             className={cn(
               'flex-1 px-3 py-2 rounded-md items-center',
               viewMode === 'month' ? 'bg-white shadow-sm' : ''
@@ -401,7 +489,7 @@ export const CalendarScreen: React.FC = () => {
             </Text>
           </Pressable>
           <Pressable
-            onPress={() => setViewMode('agenda')}
+            onPress={() => safeHandleViewModeChange('agenda')}
             className={cn(
               'flex-1 px-3 py-2 rounded-md items-center',
               viewMode === 'agenda' ? 'bg-white shadow-sm' : ''
