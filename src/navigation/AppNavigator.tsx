@@ -1,4 +1,5 @@
 import React from 'react';
+import { View, Text } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
@@ -22,9 +23,17 @@ const MainTabs = () => {
   // Create navigators inside component to ensure navigation context is available
   const Tab = createBottomTabNavigator();
 
-  // Don't render until navigation is fully ready
+  // Show loading state until navigation is fully ready
   if (!isReady || !isInitialized) {
-    return null;
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#f9fafb' }}>
+        <Ionicons name="home-outline" size={48} color="#10502f" />
+        <Text style={{ fontSize: 18, color: '#10502f', marginTop: 16, marginBottom: 8 }}>Loading Gator Hub...</Text>
+        <Text style={{ fontSize: 14, color: '#6b7280' }}>
+          {!isInitialized ? 'Initializing...' : 'Setting up navigation...'}
+        </Text>
+      </View>
+    );
   }
 
   return (
@@ -124,9 +133,17 @@ export const AppNavigator = () => {
   // Create navigator inside component to ensure navigation context is available
   const Stack = createNativeStackNavigator();
 
-  // Don't render until navigation is fully ready
+  // Show loading state until navigation is fully ready
   if (!isReady || !isInitialized) {
-    return null;
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#f9fafb' }}>
+        <Ionicons name="apps-outline" size={48} color="#10502f" />
+        <Text style={{ fontSize: 18, color: '#10502f', marginTop: 16, marginBottom: 8 }}>Loading App...</Text>
+        <Text style={{ fontSize: 14, color: '#6b7280' }}>
+          {!isInitialized ? 'Initializing...' : 'Setting up navigation...'}
+        </Text>
+      </View>
+    );
   }
 
   return (
