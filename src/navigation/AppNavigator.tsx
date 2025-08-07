@@ -3,6 +3,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
 import { useAppStore } from '../state/appStore';
+import { useNavigationContext } from './NavigationProvider';
 
 // Screens
 import { HomeScreen } from '../screens/HomeScreen';
@@ -14,11 +15,17 @@ import { AskGaitorScreen } from '../screens/AskGaitorScreen';
 import { ResourceDetailScreen } from '../screens/ResourceDetailScreen';
 import { NotificationDetailScreen } from '../screens/NotificationDetailScreen';
 
-const Tab = createBottomTabNavigator();
-const Stack = createNativeStackNavigator();
-
 const MainTabs = () => {
   const { unreadCount } = useAppStore();
+  const { isReady, isInitialized } = useNavigationContext();
+
+  // Create navigators inside component to ensure navigation context is available
+  const Tab = createBottomTabNavigator();
+
+  // Don't render until navigation is fully ready
+  if (!isReady || !isInitialized) {
+    return null;
+  }
 
   return (
     <Tab.Navigator
@@ -112,6 +119,16 @@ const MainTabs = () => {
 };
 
 export const AppNavigator = () => {
+  const { isReady, isInitialized } = useNavigationContext();
+  
+  // Create navigator inside component to ensure navigation context is available
+  const Stack = createNativeStackNavigator();
+
+  // Don't render until navigation is fully ready
+  if (!isReady || !isInitialized) {
+    return null;
+  }
+
   return (
     <Stack.Navigator
       screenOptions={{

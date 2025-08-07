@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { View, Text } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 
 interface NavigationContextType {
@@ -125,7 +126,14 @@ export const NavigationProvider: React.FC<NavigationProviderProps> = ({ children
         hasError,
         retryInitialization
       }}>
-        {children}
+        {(isReady && isInitialized && !hasError) ? children : (
+          <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#f9fafb' }}>
+            <Text style={{ fontSize: 18, color: '#10502f', marginBottom: 8 }}>Loading Gator Hub...</Text>
+            <Text style={{ fontSize: 14, color: '#6b7280' }}>
+              {!isInitialized ? 'Initializing...' : 'Setting up navigation...'}
+            </Text>
+          </View>
+        )}
       </NavigationContext.Provider>
     </NavigationContainer>
   );
