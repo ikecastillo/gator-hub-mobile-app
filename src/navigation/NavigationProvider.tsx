@@ -22,27 +22,19 @@ interface NavigationProviderProps {
 export const NavigationProvider: React.FC<NavigationProviderProps> = ({ children }) => {
   const [isReady, setIsReady] = useState(false);
 
-  useEffect(() => {
-    // Ensure navigation context is properly initialized
-    const timer = setTimeout(() => {
-      setIsReady(true);
-    }, 150); // Slightly longer delay to ensure full initialization
-
-    return () => clearTimeout(timer);
-  }, []);
-
   return (
-    <NavigationContext.Provider value={{ isReady }}>
-      <NavigationContainer
-        onReady={() => {
-          console.log('Navigation container is ready');
-        }}
-        onStateChange={(state) => {
-          console.log('Navigation state changed:', state?.routes?.map(r => r.name));
-        }}
-      >
+    <NavigationContainer
+      onReady={() => {
+        console.log('Navigation container is ready');
+        setIsReady(true);
+      }}
+      onStateChange={(state) => {
+        console.log('Navigation state changed:', state?.routes?.map(r => r.name));
+      }}
+    >
+      <NavigationContext.Provider value={{ isReady }}>
         {children}
-      </NavigationContainer>
-    </NavigationContext.Provider>
+      </NavigationContext.Provider>
+    </NavigationContainer>
   );
 }; 

@@ -1,7 +1,7 @@
 import { StatusBar } from "expo-status-bar";
 import { SafeAreaProvider } from "react-native-safe-area-context";
+import { NavigationContainer } from "@react-navigation/native";
 import { AppNavigator } from "./src/navigation/AppNavigator";
-import { NavigationProvider } from "./src/navigation/NavigationProvider";
 import React from "react";
 
 /*
@@ -52,10 +52,10 @@ class NavigationErrorBoundary extends React.Component<
       // Return a simple fallback UI
       return (
         <SafeAreaProvider>
-          <NavigationProvider>
+          <NavigationContainer>
             <AppNavigator />
             <StatusBar style="light" />
-          </NavigationProvider>
+          </NavigationContainer>
         </SafeAreaProvider>
       );
     }
@@ -68,10 +68,17 @@ export default function App() {
   return (
     <NavigationErrorBoundary>
       <SafeAreaProvider>
-        <NavigationProvider>
+        <NavigationContainer
+          onReady={() => {
+            console.log('Navigation container is ready');
+          }}
+          onStateChange={(state) => {
+            console.log('Navigation state changed:', state?.routes?.map(r => r.name));
+          }}
+        >
           <AppNavigator />
           <StatusBar style="light" />
-        </NavigationProvider>
+        </NavigationContainer>
       </SafeAreaProvider>
     </NavigationErrorBoundary>
   );
