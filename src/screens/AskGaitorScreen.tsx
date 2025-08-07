@@ -280,51 +280,50 @@ export const AskGaitorScreen: React.FC = () => {
 
   return (
     <View className="flex-1 bg-gray-50">
-      {/* Modern Header */}
-      <View className="bg-white shadow-sm" style={{ paddingTop: insets.top }}>
-        <View className="px-6 py-4">
-          <View className="flex-row items-center justify-between">
-            <View className="flex-row items-center">
-              <View className="w-12 h-12 bg-gator-green rounded-2xl items-center justify-center mr-4 shadow-sm">
-                <Text className="text-white font-bold text-lg">🐊</Text>
+      {/* Header - only show when there are chat messages */}
+      {chatHistory.length > 0 && (
+        <View className="bg-white shadow-sm border-b border-gray-100" style={{ paddingTop: insets.top + 8 }}>
+          <View className="px-6 py-3">
+            <View className="flex-row items-center justify-between">
+              <View className="flex-row items-center">
+                <View className="w-10 h-10 bg-gator-green rounded-xl items-center justify-center mr-3">
+                  <Text className="text-white font-bold text-base">🐊</Text>
+                </View>
+                <View>
+                  <Text className="text-gray-900 text-lg font-bold">Gaitor</Text>
+                  <Text className="text-gator-green text-xs font-medium">Online now</Text>
+                </View>
               </View>
-              <View>
-                <Text className="text-gray-900 text-xl font-bold">Ask Gaitor</Text>
-                <Text className="text-gator-green text-sm font-medium">AI School Assistant</Text>
-              </View>
+              <Pressable
+                onPress={clearChatHistory}
+                className="w-9 h-9 bg-gray-100 rounded-lg items-center justify-center"
+                style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
+              >
+                <Ionicons name="refresh-outline" size={16} color="#6b7280" />
+              </Pressable>
             </View>
-            {chatHistory.length > 0 && (
-              <View className="flex-row space-x-2">
-                <Pressable
-                  onPress={clearChatHistory}
-                  className="w-10 h-10 bg-gray-100 rounded-full items-center justify-center"
-                  style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
-                >
-                  <Ionicons name="refresh-outline" size={18} color="#6b7280" />
-                </Pressable>
-              </View>
-            )}
           </View>
         </View>
-      </View>
+      )}
 
       {/* Chat Messages */}
       <ScrollView
         ref={scrollViewRef}
-        className="flex-1 px-0 py-4"
+        className="flex-1 px-0"
+        style={{ paddingTop: chatHistory.length === 0 ? insets.top + 20 : 16 }}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 20 }}
+        contentContainerStyle={{ paddingBottom: 160 }}
         keyboardShouldPersistTaps="handled"
       >
         {chatHistory.length === 0 ? (
-          <View className="flex-1 justify-center items-center px-6 py-8">
+          <View className="flex-1 items-center px-6 py-8" style={{ minHeight: 600 }}>
             {/* Welcome Card */}
             <View className="bg-white rounded-3xl p-8 items-center shadow-sm border border-gray-100 mb-8 w-full">
               <View className="w-20 h-20 bg-gator-orange rounded-3xl items-center justify-center mb-6 shadow-lg">
                 <Text className="text-white font-bold text-3xl">🐊</Text>
               </View>
               <Text className="text-2xl font-bold text-gray-900 mb-3 text-center">
-                {welcomeMessages[Math.floor(Math.random() * welcomeMessages.length)]}
+                What can I help you with today? 💚
               </Text>
               <Text className="text-gray-600 text-center leading-relaxed mb-6 text-base">
                 I'm your personal guide to Gateway College Prep! Ask me anything about school services, 
@@ -374,57 +373,62 @@ export const AskGaitorScreen: React.FC = () => {
         )}
       </ScrollView>
 
-      {/* Modern Input Area */}
-      <KeyboardAvoidingView 
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
-      >
-        <View className="bg-white border-t border-gray-100 px-4 py-4" style={{ paddingBottom: Math.max(insets.bottom, 16) }}>
-          <View className="flex-row items-end space-x-3">
-            <View className="flex-1">
-              <View className="bg-gray-50 rounded-2xl px-4 py-3 min-h-[48px] max-h-[120px] border border-gray-200">
-                <TextInput
-                  ref={inputRef}
-                  value={inputText}
-                  onChangeText={setInputText}
-                  placeholder="Message Gaitor..."
-                  placeholderTextColor="#9ca3af"
-                  className="text-base text-gray-900 leading-relaxed"
-                  multiline={true}
-                  textAlignVertical="top"
-                  onSubmitEditing={() => {
-                    if (!inputText.includes('\n')) {
-                      handleSendMessage(inputText);
-                    }
-                  }}
-                  returnKeyType="send"
-                  enablesReturnKeyAutomatically={true}
-                />
+      {/* Input Area - Fixed positioning */}
+      <View className="absolute bottom-0 left-0 right-0">
+        <KeyboardAvoidingView 
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          keyboardVerticalOffset={0}
+        >
+          <View 
+            className="bg-white border-t border-gray-100 px-4 py-4" 
+            style={{ paddingBottom: Math.max(insets.bottom + 84, 100) }}
+          >
+            <View className="flex-row items-end space-x-3">
+              <View className="flex-1">
+                <View className="bg-gray-50 rounded-2xl px-4 py-3 min-h-[48px] max-h-[100px] border border-gray-200">
+                  <TextInput
+                    ref={inputRef}
+                    value={inputText}
+                    onChangeText={setInputText}
+                    placeholder="Message Gaitor..."
+                    placeholderTextColor="#9ca3af"
+                    className="text-base text-gray-900 leading-relaxed"
+                    multiline={true}
+                    textAlignVertical="top"
+                    onSubmitEditing={() => {
+                      if (!inputText.includes('\n')) {
+                        handleSendMessage(inputText);
+                      }
+                    }}
+                    returnKeyType="send"
+                    enablesReturnKeyAutomatically={true}
+                  />
+                </View>
               </View>
+              <Pressable
+                onPress={() => handleSendMessage(inputText)}
+                disabled={!inputText.trim() || isLoading}
+                className={cn(
+                  'w-12 h-12 rounded-2xl items-center justify-center shadow-sm',
+                  inputText.trim() && !isLoading
+                    ? 'bg-gator-green'
+                    : 'bg-gray-200'
+                )}
+                style={({ pressed }) => ({ 
+                  opacity: pressed ? 0.8 : 1,
+                  transform: [{ scale: pressed ? 0.95 : 1 }] 
+                })}
+              >
+                <Ionicons
+                  name={isLoading ? "hourglass-outline" : "send"}
+                  size={20}
+                  color={inputText.trim() && !isLoading ? "#ffffff" : "#9ca3af"}
+                />
+              </Pressable>
             </View>
-            <Pressable
-              onPress={() => handleSendMessage(inputText)}
-              disabled={!inputText.trim() || isLoading}
-              className={cn(
-                'w-12 h-12 rounded-2xl items-center justify-center shadow-sm',
-                inputText.trim() && !isLoading
-                  ? 'bg-gator-green'
-                  : 'bg-gray-200'
-              )}
-              style={({ pressed }) => ({ 
-                opacity: pressed ? 0.8 : 1,
-                transform: [{ scale: pressed ? 0.95 : 1 }] 
-              })}
-            >
-              <Ionicons
-                name={isLoading ? "hourglass-outline" : "send"}
-                size={20}
-                color={inputText.trim() && !isLoading ? "#ffffff" : "#9ca3af"}
-              />
-            </Pressable>
           </View>
-        </View>
-      </KeyboardAvoidingView>
+        </KeyboardAvoidingView>
+      </View>
     </View>
   );
 };
