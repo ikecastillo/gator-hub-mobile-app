@@ -1,57 +1,101 @@
-import React, { useState, useRef } from 'react';
-import { View, Text, ScrollView, TextInput, Pressable, KeyboardAvoidingView, Platform } from 'react-native';
+import React, { useState, useRef, useEffect } from 'react';
+import { View, Text, ScrollView, TextInput, Pressable, KeyboardAvoidingView, Platform, Animated } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useAppStore } from '../state/appStore';
-import { ChatBubble } from '../components/ChatBubble';
-import { CTAButton } from '../components/CTAButton';
 import { cn } from '../utils/cn';
+import { format } from 'date-fns';
 
 const quickSuggestions = [
-  "How do I report an absence?",
-  "What's for lunch this week?",
-  "When are parent-teacher conferences?",
-  "How do I access Canvas?",
-  "What are the school hours?",
-  "How do I contact my child's teacher?",
+  { text: "How do I report an absence?", icon: "calendar-clear-outline" },
+  { text: "What's for lunch this week?", icon: "restaurant-outline" },
+  { text: "When are parent-teacher conferences?", icon: "people-outline" },
+  { text: "How do I access Canvas?", icon: "school-outline" },
+  { text: "What are the school hours?", icon: "time-outline" },
+  { text: "How do I contact my child's teacher?", icon: "mail-outline" },
+];
+
+const welcomeMessages = [
+  "Howdy, Gator Family! 🐊",
+  "G'day from your friendly Gaitor! 🌟",
+  "Ready to help you navigate school life! 📚",
+  "What can I help you with today? 💚",
 ];
 
 export const AskGaitorScreen: React.FC = () => {
   const insets = useSafeAreaInsets();
   const scrollViewRef = useRef<ScrollView>(null);
+  const inputRef = useRef<TextInput>(null);
   const [inputText, setInputText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isTyping, setIsTyping] = useState(false);
+  const fadeAnim = useRef(new Animated.Value(1)).current;
   const { chatHistory, addChatMessage, clearChatHistory } = useAppStore();
 
-  const getSimulatedResponse = (message: string): string => {
+  const getSimulatedResponse = (message: string): { text: string; suggestions?: string[] } => {
     const messageLower = message.toLowerCase();
     
     if (messageLower.includes('lunch') || messageLower.includes('food') || messageLower.includes('menu')) {
-      return "This week's lunch menu includes pizza Monday, taco Tuesday, and Mediterranean Wednesday! You can find the full menu and nutrition information in the Food Services section. Would you like me to show you how to check your meal account balance too?";
+      return {
+        text: "🍕 This week's lunch menu looks delicious! We have Pizza Monday, Taco Tuesday, and our new Mediterranean Wednesday. All meals include fresh fruits and vegetables.\n\nYou can check your meal account balance anytime through the parent portal. Need help setting up meal payments?",
+        suggestions: ['Food Services', 'Meal Account Balance']
+      };
     }
     
     if (messageLower.includes('absence') || messageLower.includes('absent') || messageLower.includes('sick')) {
-      return "To report an absence, you can use the Absence Reporting form in the Resources section. You'll need to provide the student's name, date of absence, and reason. For extended absences, you can also request homework from teachers.";
+      return {
+        text: "📋 No worries! To report an absence, just fill out our quick online form. You'll need your student's name, date, and reason for absence.\n\nFor extended absences (3+ days), I can help you connect with teachers to get homework assignments ahead of time.",
+        suggestions: ['Absence Form', 'Teacher Directory']
+      };
     }
     
     if (messageLower.includes('canvas') || messageLower.includes('grade') || messageLower.includes('assignment')) {
-      return "Canvas is our learning management system where students can view assignments, submit homework, and check grades. Parents can access Canvas through the parent portal. You'll find the Canvas link in our Resources section!";
+      return {
+        text: "📚 Canvas is your one-stop shop for all things academic! Students can view assignments, submit work, and check grades. Parents get access through the parent portal.\n\nFirst time logging in? I can walk you through the setup process!",
+        suggestions: ['Canvas Login', 'Parent Portal Guide']
+      };
     }
     
     if (messageLower.includes('contact') || messageLower.includes('teacher') || messageLower.includes('email')) {
-      return "You can find all teacher contact information in our Teacher Directory. Most teachers respond to emails within 24 hours. For urgent matters, you can always call the main office at (555) 123-4567.";
+      return {
+        text: "📞 Our teachers are super responsive! You can find all their contact info in our Teacher Directory. Most reply to emails within 24 hours during school days.\n\nFor urgent matters, the main office is always here to help at (555) 123-4567.",
+        suggestions: ['Teacher Directory', 'Main Office']
+      };
     }
     
     if (messageLower.includes('hours') || messageLower.includes('time') || messageLower.includes('schedule')) {
-      return "School hours are 8:00 AM to 3:30 PM, Monday through Friday. The main office is open from 7:30 AM to 4:00 PM for any questions or assistance you might need.";
+      return {
+        text: "🕒 Gateway College Prep is open Monday-Friday, 8:00 AM to 3:30 PM. Our main office is available from 7:30 AM to 4:00 PM for any questions.\n\nLooking for after-school program hours or special event times?",
+        suggestions: ['School Calendar', 'After School Programs']
+      };
     }
     
-    if (messageLower.includes('conference') || messageLower.includes('meeting')) {
-      return "Parent-teacher conferences are scheduled online through our parent portal. Spring conferences are coming up March 15-17! You can book 15-minute slots with each of your child's teachers.";
+    if (messageLower.includes('conference') || messageLower.includes('meeting') || messageLower.includes('parent')) {
+      return {
+        text: "👥 Parent-teacher conferences are coming up March 15-17! You can schedule 15-minute sessions with each teacher through our online booking system.\n\nPro tip: Book early for the best time slots!",
+        suggestions: ['Conference Booking', 'Teacher Schedules']
+      };
+    }
+    
+    if (messageLower.includes('transportation') || messageLower.includes('bus')) {
+      return {
+        text: "🚌 Our transportation team keeps everything running smoothly! You can find bus routes, schedules, and real-time updates in the Transportation section.\n\nNeed to report a bus issue or request a route change?",
+        suggestions: ['Bus Routes', 'Transportation Contact']
+      };
+    }
+    
+    if (messageLower.includes('volunteer') || messageLower.includes('help') || messageLower.includes('pto')) {
+      return {
+        text: "❤️ We love our volunteer families! The PTO has tons of opportunities to get involved - from classroom help to special events.\n\nEvery bit of help makes our Gator community stronger!",
+        suggestions: ['Volunteer Opportunities', 'PTO Events']
+      };
     }
     
     // Default friendly response
-    return "Great question! I'm here to help you navigate Gateway College Prep. You can find most information in our Resources section, or feel free to contact our friendly office staff at (555) 123-4567. Is there anything specific about school services I can help you with?";
+    return {
+      text: "🐊 Great question! I'm here to help make your Gateway College Prep experience smooth and easy. Feel free to explore our Resources section or contact our amazing office team at (555) 123-4567.\n\nWhat else would you like to know about our Gator family?",
+      suggestions: ['Browse Resources', 'Contact Office']
+    };
   };
 
   const handleSendMessage = async (message: string) => {
@@ -66,57 +110,40 @@ export const AskGaitorScreen: React.FC = () => {
 
     setInputText('');
     setIsLoading(true);
+    setIsTyping(true);
 
-    // Simulate loading delay
+    // Scroll to bottom immediately after user message
     setTimeout(() => {
+      scrollViewRef.current?.scrollToEnd({ animated: true });
+    }, 100);
+
+    // Simulate realistic typing delay
+    const typingDelay = 1200 + Math.random() * 800; // 1.2-2 seconds
+    
+    setTimeout(() => {
+      setIsTyping(false);
+      
       // Get simulated response
       const response = getSimulatedResponse(message);
-      
-      // Determine if we should suggest resources based on the query
-      const suggestedResources = getSuggestedResources(message);
 
       // Add Gaitor's response
       addChatMessage({
-        text: response,
+        text: response.text,
         isUser: false,
         timestamp: new Date(),
-        suggestedResources: suggestedResources.length > 0 ? suggestedResources : undefined,
+        suggestedResources: response.suggestions,
       });
 
-      // Scroll to bottom
+      // Scroll to bottom after response
       setTimeout(() => {
         scrollViewRef.current?.scrollToEnd({ animated: true });
       }, 100);
 
       setIsLoading(false);
-    }, 1000 + Math.random() * 1000); // Random delay between 1-2 seconds
+    }, typingDelay);
   };
 
-  const getSuggestedResources = (query: string): string[] => {
-    const queryLower = query.toLowerCase();
-    const suggestions: string[] = [];
 
-    if (queryLower.includes('lunch') || queryLower.includes('food') || queryLower.includes('menu')) {
-      suggestions.push('Food Services');
-    }
-    if (queryLower.includes('absence') || queryLower.includes('absent') || queryLower.includes('sick')) {
-      suggestions.push('Absence Reporting');
-    }
-    if (queryLower.includes('canvas') || queryLower.includes('grade') || queryLower.includes('assignment')) {
-      suggestions.push('Canvas LMS');
-    }
-    if (queryLower.includes('nurse') || queryLower.includes('health') || queryLower.includes('medical')) {
-      suggestions.push('Nurse Office');
-    }
-    if (queryLower.includes('contact') || queryLower.includes('teacher') || queryLower.includes('email')) {
-      suggestions.push('Teacher Directory');
-    }
-    if (queryLower.includes('calendar') || queryLower.includes('event') || queryLower.includes('schedule')) {
-      suggestions.push('School Calendar');
-    }
-
-    return suggestions;
-  };
 
   const handleSuggestionPress = (suggestion: string) => {
     handleSendMessage(suggestion);
@@ -125,74 +152,210 @@ export const AskGaitorScreen: React.FC = () => {
   const handleResourceSuggestionPress = (resource: string) => {
     // In a real app, this would navigate to the resource
     addChatMessage({
-      text: `Great! I've opened the ${resource} resource for you. You can find it in the Resources tab as well.`,
+      text: `Perfect! I've highlighted the ${resource} section for you. You can also find it anytime in the Resources tab. Anything else I can help you with? 😊`,
       isUser: false,
       timestamp: new Date(),
     });
   };
 
-  return (
-    <View className="flex-1 bg-gray-50">
-      {/* Header */}
-      <View className="bg-gator-green px-6 py-4" style={{ paddingTop: insets.top + 16 }}>
-        <View className="flex-row items-center justify-between">
-          <View className="flex-row items-center">
-            <View className="w-10 h-10 bg-gator-orange rounded-full items-center justify-center mr-3">
-              <Text className="text-white font-bold text-lg">🐊</Text>
+  const TypingIndicator = () => (
+    <View className="items-start mb-4 px-4">
+      <View className="bg-white rounded-2xl px-4 py-3 shadow-sm border border-gray-100 flex-row items-center">
+        <View className="w-8 h-8 bg-gator-orange rounded-full items-center justify-center mr-3">
+          <Text className="text-white text-xs font-bold">🐊</Text>
+        </View>
+        <View className="flex-row space-x-1">
+          <Animated.View className="w-2 h-2 bg-gray-400 rounded-full" style={{
+            opacity: fadeAnim,
+            transform: [{ 
+              scale: fadeAnim.interpolate({
+                inputRange: [0.5, 1],
+                outputRange: [0.8, 1.2]
+              })
+            }]
+          }} />
+          <Animated.View className="w-2 h-2 bg-gray-400 rounded-full" style={{
+            opacity: fadeAnim,
+            transform: [{ 
+              scale: fadeAnim.interpolate({
+                inputRange: [0.5, 1],
+                outputRange: [1.2, 0.8]
+              })
+            }]
+          }} />
+          <Animated.View className="w-2 h-2 bg-gray-400 rounded-full" style={{
+            opacity: fadeAnim,
+            transform: [{ 
+              scale: fadeAnim.interpolate({
+                inputRange: [0.5, 1],
+                outputRange: [0.8, 1.2]
+              })
+            }]
+          }} />
+        </View>
+      </View>
+    </View>
+  );
+
+  const MessageBubble = ({ message, onSuggestionPress }: { 
+    message: any, 
+    onSuggestionPress?: (suggestion: string) => void 
+  }) => (
+    <View className={cn(
+      'mb-4 px-4',
+      message.isUser ? 'items-end' : 'items-start'
+    )}>
+      <View className={cn(
+        'max-w-[85%] rounded-2xl px-4 py-3 shadow-sm',
+        message.isUser 
+          ? 'bg-gator-green' 
+          : 'bg-white border border-gray-100'
+      )}>
+        {!message.isUser && (
+          <View className="flex-row items-center mb-2">
+            <View className="w-6 h-6 bg-gator-orange rounded-full items-center justify-center mr-2">
+              <Text className="text-white text-xs font-bold">🐊</Text>
             </View>
-            <View>
-              <Text className="text-white text-lg font-semibold">Ask Gaitor</Text>
-              <Text className="text-white/80 text-sm">Your AI school assistant</Text>
+            <Text className="text-gator-green font-semibold text-sm">Gaitor</Text>
+          </View>
+        )}
+        
+        <Text className={cn(
+          'text-base leading-relaxed',
+          message.isUser ? 'text-white' : 'text-gray-900'
+        )}>
+          {message.text}
+        </Text>
+        
+        {message.suggestedResources && message.suggestedResources.length > 0 && (
+          <View className="mt-3 space-y-2">
+            <Text className="text-sm font-medium text-gray-700 mb-2">
+              Quick Links:
+            </Text>
+            <View className="flex-row flex-wrap gap-2">
+              {message.suggestedResources.map((suggestion: string, index: number) => (
+                <Pressable
+                  key={index}
+                  onPress={() => onSuggestionPress?.(suggestion)}
+                  className="bg-gator-green/10 px-3 py-2 rounded-lg border border-gator-green/20"
+                  style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
+                >
+                  <Text className="text-gator-green font-medium text-sm">
+                    {suggestion}
+                  </Text>
+                </Pressable>
+              ))}
             </View>
           </View>
-          {chatHistory.length > 0 && (
-            <Pressable
-              onPress={clearChatHistory}
-              className="p-2"
-              style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
-            >
-              <Ionicons name="trash-outline" size={20} color="#ffffff" />
-            </Pressable>
-          )}
+        )}
+      </View>
+      
+      <Text className="text-xs text-gray-500 mt-1 ml-2">
+        {format(message.timestamp, 'h:mm a')}
+      </Text>
+    </View>
+  );
+
+  useEffect(() => {
+    if (isTyping) {
+      const pulse = Animated.loop(
+        Animated.sequence([
+          Animated.timing(fadeAnim, {
+            toValue: 0.3,
+            duration: 600,
+            useNativeDriver: true,
+          }),
+          Animated.timing(fadeAnim, {
+            toValue: 1,
+            duration: 600,
+            useNativeDriver: true,
+          }),
+        ])
+      );
+      pulse.start();
+      
+      return () => pulse.stop();
+    }
+  }, [isTyping]);
+
+  return (
+    <View className="flex-1 bg-gray-50">
+      {/* Modern Header */}
+      <View className="bg-white shadow-sm" style={{ paddingTop: insets.top }}>
+        <View className="px-6 py-4">
+          <View className="flex-row items-center justify-between">
+            <View className="flex-row items-center">
+              <View className="w-12 h-12 bg-gator-green rounded-2xl items-center justify-center mr-4 shadow-sm">
+                <Text className="text-white font-bold text-lg">🐊</Text>
+              </View>
+              <View>
+                <Text className="text-gray-900 text-xl font-bold">Ask Gaitor</Text>
+                <Text className="text-gator-green text-sm font-medium">AI School Assistant</Text>
+              </View>
+            </View>
+            {chatHistory.length > 0 && (
+              <View className="flex-row space-x-2">
+                <Pressable
+                  onPress={clearChatHistory}
+                  className="w-10 h-10 bg-gray-100 rounded-full items-center justify-center"
+                  style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
+                >
+                  <Ionicons name="refresh-outline" size={18} color="#6b7280" />
+                </Pressable>
+              </View>
+            )}
+          </View>
         </View>
       </View>
 
       {/* Chat Messages */}
       <ScrollView
         ref={scrollViewRef}
-        className="flex-1 px-2 py-4"
+        className="flex-1 px-0 py-4"
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 20 }}
         keyboardShouldPersistTaps="handled"
       >
         {chatHistory.length === 0 ? (
-          <View className="flex-1 justify-center items-center px-6">
-            <View className="bg-white rounded-2xl p-8 items-center shadow-sm border border-gray-100 mb-6">
-              <Text className="text-6xl mb-4">🐊</Text>
-              <Text className="text-xl font-bold text-gray-900 mb-2">
-                Howdy, Gator Family!
+          <View className="flex-1 justify-center items-center px-6 py-8">
+            {/* Welcome Card */}
+            <View className="bg-white rounded-3xl p-8 items-center shadow-sm border border-gray-100 mb-8 w-full">
+              <View className="w-20 h-20 bg-gator-orange rounded-3xl items-center justify-center mb-6 shadow-lg">
+                <Text className="text-white font-bold text-3xl">🐊</Text>
+              </View>
+              <Text className="text-2xl font-bold text-gray-900 mb-3 text-center">
+                {welcomeMessages[Math.floor(Math.random() * welcomeMessages.length)]}
               </Text>
-              <Text className="text-gray-600 text-center leading-relaxed mb-6">
-                I'm Gaitor, your friendly AI assistant! I'm here to help you with school questions, 
-                find resources, and navigate Gateway College Prep.
+              <Text className="text-gray-600 text-center leading-relaxed mb-6 text-base">
+                I'm your personal guide to Gateway College Prep! Ask me anything about school services, 
+                schedules, resources, or how to get things done.
               </Text>
-              <Text className="text-sm font-medium text-gator-green mb-4">
-                Try asking me something like:
-              </Text>
+              <View className="bg-gator-green/10 px-4 py-2 rounded-full">
+                <Text className="text-gator-green font-semibold text-sm">
+                  ✨ Try one of these popular questions
+                </Text>
+              </View>
             </View>
 
-            {/* Quick Suggestions */}
-            <View className="w-full space-y-2">
+            {/* Quick Suggestions Grid */}
+            <View className="w-full space-y-3">
               {quickSuggestions.map((suggestion, index) => (
                 <Pressable
                   key={index}
-                  onPress={() => handleSuggestionPress(suggestion)}
-                  className="bg-white rounded-xl p-4 shadow-sm border border-gray-100"
-                  style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
+                  onPress={() => handleSuggestionPress(suggestion.text)}
+                  className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex-row items-center"
+                  style={({ pressed }) => ({ 
+                    opacity: pressed ? 0.8 : 1,
+                    transform: [{ scale: pressed ? 0.98 : 1 }]
+                  })}
                 >
-                  <Text className="text-gator-green font-medium text-center">
-                    {suggestion}
+                  <View className="w-10 h-10 bg-gator-green/10 rounded-xl items-center justify-center mr-3">
+                    <Ionicons name={suggestion.icon as any} size={18} color="#10502f" />
+                  </View>
+                  <Text className="text-gray-700 font-medium flex-1">
+                    {suggestion.text}
                   </Text>
+                  <Ionicons name="chevron-forward" size={16} color="#d1d5db" />
                 </Pressable>
               ))}
             </View>
@@ -200,56 +363,53 @@ export const AskGaitorScreen: React.FC = () => {
         ) : (
           <View>
             {chatHistory.map((message) => (
-              <ChatBubble
+              <MessageBubble
                 key={message.id}
                 message={message}
                 onSuggestionPress={handleResourceSuggestionPress}
               />
             ))}
-            {isLoading && (
-              <View className="items-start mb-4 px-4">
-                <View className="bg-gray-100 rounded-2xl px-4 py-3 border border-gray-200">
-                  <Text className="text-gray-600">Gaitor is thinking...</Text>
-                </View>
-              </View>
-            )}
+            {isTyping && <TypingIndicator />}
           </View>
         )}
       </ScrollView>
 
-      {/* Input Area */}
+      {/* Modern Input Area */}
       <KeyboardAvoidingView 
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
       >
-        <View className="bg-white border-t border-gray-200 px-4 py-4" style={{ paddingBottom: Math.max(insets.bottom, 16) }}>
+        <View className="bg-white border-t border-gray-100 px-4 py-4" style={{ paddingBottom: Math.max(insets.bottom, 16) }}>
           <View className="flex-row items-end space-x-3">
-            <View className="flex-1 bg-gray-100 rounded-2xl px-4 py-3 min-h-[44px] max-h-[100px] justify-center">
-              <TextInput
-                value={inputText}
-                onChangeText={setInputText}
-                placeholder="Ask Gaitor anything..."
-                placeholderTextColor="#9ca3af"
-                className="text-base text-gray-900"
-                multiline={true}
-                textAlignVertical="center"
-                onSubmitEditing={() => {
-                  if (!inputText.includes('\n')) {
-                    handleSendMessage(inputText);
-                  }
-                }}
-                returnKeyType="send"
-                enablesReturnKeyAutomatically={true}
-              />
+            <View className="flex-1">
+              <View className="bg-gray-50 rounded-2xl px-4 py-3 min-h-[48px] max-h-[120px] border border-gray-200">
+                <TextInput
+                  ref={inputRef}
+                  value={inputText}
+                  onChangeText={setInputText}
+                  placeholder="Message Gaitor..."
+                  placeholderTextColor="#9ca3af"
+                  className="text-base text-gray-900 leading-relaxed"
+                  multiline={true}
+                  textAlignVertical="top"
+                  onSubmitEditing={() => {
+                    if (!inputText.includes('\n')) {
+                      handleSendMessage(inputText);
+                    }
+                  }}
+                  returnKeyType="send"
+                  enablesReturnKeyAutomatically={true}
+                />
+              </View>
             </View>
             <Pressable
               onPress={() => handleSendMessage(inputText)}
               disabled={!inputText.trim() || isLoading}
               className={cn(
-                'w-12 h-12 rounded-full items-center justify-center shadow-sm',
+                'w-12 h-12 rounded-2xl items-center justify-center shadow-sm',
                 inputText.trim() && !isLoading
                   ? 'bg-gator-green'
-                  : 'bg-gray-300'
+                  : 'bg-gray-200'
               )}
               style={({ pressed }) => ({ 
                 opacity: pressed ? 0.8 : 1,
@@ -259,7 +419,7 @@ export const AskGaitorScreen: React.FC = () => {
               <Ionicons
                 name={isLoading ? "hourglass-outline" : "send"}
                 size={20}
-                color="#ffffff"
+                color={inputText.trim() && !isLoading ? "#ffffff" : "#9ca3af"}
               />
             </Pressable>
           </View>
